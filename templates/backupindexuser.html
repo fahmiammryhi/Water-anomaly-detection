@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+    <!-- <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAIK0a22vHaoob35t2cpaB7Ch_7zRDsgpE"></script> -->
+
+    <link href='https://unpkg.com/boxicons@2.1.1/css/boxicons.min.css' rel='stylesheet'>
+</head>
+
+<body>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC7NQKVoYsE1NgAzfBzloM5uocqfiKZ1WM"></script>
+    <nav class="sidebar close">
+        <header>
+            <div class="image-text">
+                <span class="image">
+                    <img src=" {{ url_for('static', filename='img/telkom-university-logo.png') }}" alt="logo">
+                </span>
+
+                <div class="text logo-text">
+                    <span class="name">Anomaly Detection in</span>
+                    <span class="name">Water Consumption</span>
+                </div>
+            </div>
+
+            <i class='bx bx-chevron-right toggle'></i>
+        </header>
+
+        <div class="menu-bar">
+            <div class="menu">
+
+                <ul class="menu-links">
+                    <li class="nav-link">
+                        <a href="#">
+                            <i class='bx bx-home-alt icon'></i>
+                            <span class="text nav-text">Dashboard</span>
+                        </a>
+                    </li>
+                    <li class="nav-link">
+                        <a href="#">
+                            <i class='bx bx-info-circle icon'></i>
+                            <span class="text nav-text">About</span>
+                        </a>
+                    </li>
+
+                    <li class="nav-link">
+                        <a href="{{ url_for('login_page') }}">
+                            <i class='bx bx-log-out icon'></i>
+                            <span class="text nav-text">Logout</span>
+                        </a>
+                    </li>
+
+
+                </ul>
+            </div>
+
+    </nav>
+
+    <section class="home">
+
+        <!-- CLASS FOR INPUT AND Visualisasi -->
+        <div class="content-container">
+            <!-- INPUT  -->
+            <div class="card small-card">
+                <div>
+                    <h3>Anomaly Detection</h3>
+                    <form id="anomaly-detection-form">
+                        <div class="form-group">
+                            <label for="no_pelanggan">No Pelanggan</label>
+                            <input type="text" id="no_pelanggan" name="no_pelanggan" placeholder="No Pelanggan"
+                                required>
+                        </div>
+                        <div class="form-group">
+                            <label for="device_id">Device Id</label>
+                            <input type="text" id="device_id" name="device_id" placeholder="Device Id" required>
+                        </div>
+                        <button type="button" onclick="submitForm()">Submit</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Visualisasi Maps  -->
+            <div class="map-card">
+                <div class="map-body">
+                    <div id="map"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Output Anomaly + Rekomendasi -->
+        <div class=" card">
+            <div class="container">
+                <div id="anomaly-message"></div>
+            </div>
+        </div>
+
+
+    </section>
+
+
+    <script>
+        //////
+        const body = document.querySelector('body'),
+            sidebar = body.querySelector('nav'),
+            toggle = body.querySelector(".toggle"),
+            searchBtn = body.querySelector(".search-box"),
+            modeSwitch = body.querySelector(".toggle-switch"),
+            modeText = body.querySelector(".mode-text");
+
+
+        toggle.addEventListener("click", () => {
+            sidebar.classList.toggle("close");
+        })
+
+        searchBtn.addEventListener("click", () => {
+            sidebar.classList.remove("close");
+        })
+
+        ///
+
+
+        // Map functionality
+        // let map = null;
+        // let marker = null;
+
+        // function initMap(latitude, longitude) {
+        //     map = new google.maps.Map(document.getElementById('map'), {
+        //         // center: { lat: -6.9175, lng: 107.6191 },  // Centered on Bandung, Indonesia
+        //         center: { lat: latitude, lng: longitude },  // Centered on Bandung, Indonesia
+        //         zoom: 12
+        //     });
+        // }
+        // function initMap() {
+        //     map = new google.maps.Map(document.getElementById('map'), {
+        //         center: { lat:  -6.9175, lng: 107.6191 },
+        //         zoom: 4
+        //     });
+        // }
+
+        // function updateMap(data) {
+        //     let marker = null; // Initialize marker to null
+        //     console.log(data);
+        //     const latLng = new google.maps.LatLng(data.latitude, data.longitude);
+
+        //     if (marker) {
+        //         marker.setMap(null);
+        //     }
+
+        //     marker = new google.maps.Marker({
+        //         position: latLng,
+        //         map: map
+        //     });
+
+        //     map.setCenter(latLng);
+        //     map.setZoom(15);
+        // }
+
+        // Anomaly detection form submission
+        function submitForm() {
+            const noPelanggan = document.getElementById('no_pelanggan').value;
+            const deviceId = document.getElementById('device_id').value;
+            // console.log(noPelanggan,deviceId);
+
+            fetch('/anomaly_detection_user', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    no_pelanggan: noPelanggan,
+                    device_id: deviceId
+                })
+            })
+                .then(response => response.json())
+
+                .then(data => {
+                    console.log(data);
+
+                    document.getElementById('anomaly-message').textContent = data.message;
+
+                    // Update Map
+                    // updateMap(data);
+
+
+                    // Update map
+                    // const latLng = new google.maps.LatLng(data.latitude, data.longitude);
+
+                    // if (marker) {
+                    //     marker.setMap(null);
+                    // }
+
+                    // marker = new google.maps.Marker({
+                    //     position: latLng,
+                    //     map: map
+                    // });
+
+                    // map.setCenter(latLng);
+                    // map.setZoom(15);
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    document.getElementById('anomaly-message').textContent = 'Terjadi kesalahan saat memproses permintaan.';
+                });
+        };
+
+        // Initialize the map when the page loads
+        // window.onload = initMap();
+        // document.addEventListener('DOMContentLoaded', initMap);
+
+
+    </script>
+
+</body>
+
+</html>

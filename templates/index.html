@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+    <link href='https://unpkg.com/boxicons@2.1.1/css/boxicons.min.css' rel='stylesheet'>
+</head>
+
+<body>
+    <nav class="sidebar close">
+        <header>
+            <div class="image-text">
+                <span class="image">
+                    <img src=" {{ url_for('static', filename='img/telkom-university-logo.png') }}" alt="logo">
+                </span>
+
+                <div class="text logo-text">
+                    <span class="name">Anomaly Detection in</span>
+                    <span class="name">Water Consumption</span>
+                </div>
+            </div>
+
+            <i class='bx bx-chevron-right toggle'></i>
+        </header>
+
+        <div class="menu-bar">
+            <div class="menu">
+
+                <ul class="menu-links">
+                    <li class="nav-link">
+                        <a href="#">
+                            <i class='bx bx-home-alt icon'></i>
+                            <span class="text nav-text">Dashboard</span>
+                        </a>
+                    </li>
+                    <li class="nav-link">
+                        <a href="#">
+                            <i class='bx bx-info-circle icon'></i>
+                            <span class="text nav-text">About</span>
+                        </a>
+                    </li>
+
+                    <li class="nav-link">
+                        <a href="{{ url_for('login_page') }}">
+                            <i class='bx bx-log-out icon'></i>
+                            <span class="text nav-text">Logout</span>
+                        </a>
+                    </li>
+
+
+                </ul>
+            </div>
+            <!-- <div class="bottom-content">
+                    <li class="">
+                        <a>
+                            <span class="text nav-text">© Fahmi Ammry All rights reserved. </span>
+                        </a>
+                    </li>
+                </div> -->
+
+    </nav>
+
+    <section class="home">
+
+        <!-- UPLOAD CSV -->
+        <div class="card">
+            <div class="container">
+                <h3>Upload CSV file</h3>
+                <div class="button-container">
+                    <label for="fileInput" class="custom-file-upload">Upload CSV</label>
+                    <input type="file" id="fileInput" accept=".csv" />
+                </div>
+                <div id="loadingIndicator">Uploading...</div>
+                <table id="csvTable">
+                    <thead>
+                        <tr id="tableHeader"></tr>
+                    </thead>
+                    <tbody id="tableBody"></tbody>
+                </table>
+                <div id="anomalyButtonContainer" class="button-container" style="display: none;">
+                    <button id="anomalyDetectionButton" class="custom-file-upload" onclick="anomalyDetection()">Deteksi
+                        Anomali</button>
+                </div>
+            </div>
+
+            <!-- CLASS FOR INPUT AND Visualisasi -->
+            <div class="content-containerr">
+
+                <!-- Visualisasi Plot Cluster  -->
+                <div class="card visualization-card">
+                    <!-- <div class="card-body">
+                        <img id="visualization-image" src=" {{ url_for('static', filename='img/gambar1.jpg') }}"
+                            alt="plot_cluster" class="visualization-image">
+                    </div> -->
+                    <div class="card-body">
+                        <img id="visualization-image" src="" alt="plot_cluster" class="visualization-image">
+                    </div>
+                </div>
+                <!-- Visualisasi Plot Cluster  -->
+                <div class="card visualization-card">
+                    <!-- <div class="card-body">
+                        <img id="visualization-image2" src="{{ url_for('static', filename='img/gambar2.jpg') }}"
+                            alt="plot_each_cluster" class="visualization-image">
+                    </div> -->
+                    <div class="card-body">
+                        <img id="visualization-image2" src="" alt="plot_each_cluster" class="visualization-image">
+                    </div>
+                </div>
+
+
+
+            </div>
+
+
+            <!-- Table Anomali + Download Csv -->
+            <div class="card">
+                <div class="container">
+                    <!-- Table Anomaly -->
+                    <div>
+                        <h3>Table Anomaly</h3>
+                        <table id="csvsave">
+                            <thead>
+                                <tr id="tableHeaderAnomaly"></tr>
+                            </thead>
+                            <tbody id="tableBodyAnomaly"></tbody>
+                        </table>
+                    </div>
+                    <!-- Download Csv -->
+                    <div id="downloadCsv" style="text-align: center; margin: 1%;">
+                    </div>
+                    <!-- Total Anomali -->
+                    <div id="total_anomali">
+
+                    </div>
+                </div>
+            </div>
+
+    </section>
+
+
+    <script>
+        /// UPLOAD CSV
+        document.getElementById('fileInput').addEventListener('change', function (event) {
+            const file = event.target.files[0];
+            if (file) {
+                document.getElementById('loadingIndicator').style.display = 'block';
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const text = e.target.result;
+                    displayCSV(text);
+                    document.getElementById('loadingIndicator').style.display = 'none';
+                };
+                reader.readAsText(file);
+            }
+        });
+
+        function displayCSV(text) {
+            const rows = text.split('\n').filter(row => row.trim() !== '');
+            const tableHeader = document.getElementById('tableHeader');
+            const tableBody = document.getElementById('tableBody');
+
+            tableHeader.innerHTML = '';
+            tableBody.innerHTML = '';
+
+            const headers = rows[0].split(',');
+            headers.forEach(header => {
+                const th = document.createElement('th');
+                th.textContent = header.trim();
+                tableHeader.appendChild(th);
+            });
+
+            rows.slice(1, 6).forEach(row => { // Mengambil 5 baris teratas setelah header
+                const tr = document.createElement('tr');
+                const columns = row.split(',');
+                columns.forEach(column => {
+                    const td = document.createElement('td');
+                    td.textContent = column.trim();
+                    tr.appendChild(td);
+                });
+                tableBody.appendChild(tr);
+            });
+        }
+
+        /// button deteksi anomali
+        document.getElementById('fileInput').addEventListener('change', function (event) {
+            const fileInput = event.target;
+            const anomalyButtonContainer = document.getElementById('anomalyButtonContainer');
+
+            if (fileInput.files.length > 0) {
+                // File telah diunggah, tampilkan tombol deteksi anomali
+                anomalyButtonContainer.style.display = 'block';
+            } else {
+                // Tidak ada file, sembunyikan tombol deteksi anomali
+                anomalyButtonContainer.style.display = 'none';
+            }
+        });
+
+        //// Anomaly Detection
+        function anomalyDetection() {
+            const fileInput = document.getElementById('fileInput');
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+
+            fetch('/anomaly_detection', {
+                method: 'POST',
+                body: formData
+            })
+                .then(response => response.json())
+                .then(data => {
+                    const visualizationImage = document.getElementById('visualization-image');
+                    visualizationImage.src = `data:image/png;base64,${data.img_data1}`;
+
+                    const visualizationImage2 = document.getElementById('visualization-image2');
+                    visualizationImage2.src = `data:image/png;base64,${data.img_data2}`;
+
+                    const tableHeaderAnomaly = document.getElementById('tableHeaderAnomaly');
+                    const tableBodyAnomaly = document.getElementById('tableBodyAnomaly');
+                    const csvData = data.csv_data;
+                    const rows = csvData.split('\n');
+                    const headers = rows[0].split(',');
+                    headers.forEach(header => {
+                        const th = document.createElement('th');
+                        th.textContent = header.trim();
+                        tableHeaderAnomaly.appendChild(th);
+                    });
+
+                    rows.slice(1, 6).forEach(row => {
+                        const tr = document.createElement('tr');
+                        const columns = row.split(',');
+                        columns.forEach(column => {
+                            const td = document.createElement('td');
+                            td.textContent = column.trim();
+                            tr.appendChild(td);
+                        });
+                        tableBodyAnomaly.appendChild(tr);
+                    });
+
+                    const downloadCsvButton = document.getElementById('downloadCsv');
+                    downloadCsvButton.innerHTML = `<a href="data:text/csv;charset=utf-8,%EF%BB%BF${encodeURIComponent(csvData)}" download="anomaly_detection.csv">Download CSV</a>`;
+
+                    // const downloadCsvButton = document.getElementById('downloadCsv');
+                    // downloadCsvButton.innerHTML = `<a href="/download_csv/${data.csv_filename}" download>Download CSV</a>`;
+
+
+                    // Menampilkan total anomali
+                    const totalAnomaliDiv = document.getElementById('total_anomali');
+                    totalAnomaliDiv.innerHTML = `
+                    <p>Jumlah Anomali: ${data.anomaly_count}</p>
+                    <p>Jumlah Normal: ${data.normal_count}</p>
+                     `;
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Terjadi kesalahan saat melakukan deteksi anomali. Silakan coba lagi.');
+                });
+        }
+
+        ////// sidebar
+        const body = document.querySelector('body'),
+            sidebar = body.querySelector('nav'),
+            toggle = body.querySelector(".toggle"),
+            searchBtn = body.querySelector(".search-box"),
+            modeSwitch = body.querySelector(".toggle-switch"),
+            modeText = body.querySelector(".mode-text");
+
+
+        toggle.addEventListener("click", () => {
+            sidebar.classList.toggle("close");
+        })
+
+        searchBtn.addEventListener("click", () => {
+            sidebar.classList.remove("close");
+        })
+        ///
+    </script>
+
+</body>
+
+</html>

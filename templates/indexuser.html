@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+    <!-- <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAIK0a22vHaoob35t2cpaB7Ch_7zRDsgpE"></script> -->
+    <!-- <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC7NQKVoYsE1NgAzfBzloM5uocqfiKZ1WM&callback=myMap"></script> -->
+
+    <link href='https://unpkg.com/boxicons@2.1.1/css/boxicons.min.css' rel='stylesheet'>
+</head>
+
+<body>
+    <!-- <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC7NQKVoYsE1NgAzfBzloM5uocqfiKZ1WM"></script> -->
+    <nav class="sidebar close">
+        <header>
+            <div class="image-text">
+                <span class="image">
+                    <img src=" {{ url_for('static', filename='img/telkom-university-logo.png') }}" alt="logo">
+                </span>
+
+                <div class="text logo-text">
+                    <span class="name">Anomaly Detection in</span>
+                    <span class="name">Water Consumption</span>
+                </div>
+            </div>
+
+            <i class='bx bx-chevron-right toggle'></i>
+        </header>
+
+        <div class="menu-bar">
+            <div class="menu">
+
+                <ul class="menu-links">
+                    <li class="nav-link">
+                        <a href="#">
+                            <i class='bx bx-home-alt icon'></i>
+                            <span class="text nav-text">Dashboard</span>
+                        </a>
+                    </li>
+                    <li class="nav-link">
+                        <a href="#">
+                            <i class='bx bx-info-circle icon'></i>
+                            <span class="text nav-text">About</span>
+                        </a>
+                    </li>
+
+                    <li class="nav-link">
+                        <a href="{{ url_for('login_page') }}">
+                            <i class='bx bx-log-out icon'></i>
+                            <span class="text nav-text">Logout</span>
+                        </a>
+                    </li>
+
+
+                </ul>
+            </div>
+
+    </nav>
+
+    <section class="home">
+
+        <!-- CLASS FOR INPUT AND Visualisasi -->
+        <div class="content-container">
+            <!-- INPUT  -->
+            <div class="card small-card">
+                <div>
+                    <h3>Anomaly Detection</h3>
+                    <form id="anomaly-detection-form">
+                        <div class="form-group">
+                            <label for="no_pelanggan">No Pelanggan</label>
+                            <input type="text" id="no_pelanggan" name="no_pelanggan" placeholder="No Pelanggan"
+                                required>
+                        </div>
+                        <div class="form-group">
+                            <label for="device_id">Device Id</label>
+                            <input type="text" id="device_id" name="device_id" placeholder="Device Id" required>
+                        </div>
+                        <button type="button" onclick="submitForm()">Submit</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Visualisasi Maps  -->
+            <div class="map-card">
+                <div class="map-body">
+                    <!-- <iframe
+                        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3957.379787488694!2d112.7263400758806!3d-7.311161171886069!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2dd7fbd1cb925a1d%3A0x1dbecb0b2e9b059f!2sUniversitas%20Telkom%20Surabaya!5e0!3m2!1sen!2sid!4v1721036653158!5m2!1sen!2sid"
+                        width="400" height="300" style="border:0;" allowfullscreen="" loading="lazy"
+                        referrerpolicy="no-referrer-when-downgrade"></iframe> -->
+                    <div id="map" style="width:100%;height:300px;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- // Output Anomaly + Rekomendasi -->
+        <div class=" card">
+            <div class="container">
+                <h4>Result:</h4>
+                <div id="anomaly-message" style="text-align: center;"></div>
+            </div>
+        </div>
+
+
+    </section>
+
+
+    <script>
+        ////// sidebar
+        const body = document.querySelector('body'),
+            sidebar = body.querySelector('nav'),
+            toggle = body.querySelector(".toggle"),
+            searchBtn = body.querySelector(".search-box"),
+            modeSwitch = body.querySelector(".toggle-switch"),
+            modeText = body.querySelector(".mode-text");
+
+
+        toggle.addEventListener("click", () => {
+            sidebar.classList.toggle("close");
+        })
+
+        searchBtn.addEventListener("click", () => {
+            sidebar.classList.remove("close");
+        })
+
+        ///
+
+        // Map
+        var map;
+        function initMap() {
+            mapProp = {
+                center: new google.maps.LatLng(-7.3111612, 112.7263401),
+                zoom: 16
+            };
+            var map = new google.maps.Map(document.getElementById("map"), mapProp);
+
+            var marker = new google.maps.Marker({
+                position: new google.maps.LatLng(-7.3111612, 112.7263401),
+                map: map
+            });
+        }
+
+        function updateMap(lat, long, title) {
+            mapProp = {
+                center: new google.maps.LatLng(lat, long),
+                zoom: 16
+            };
+            var map = new google.maps.Map(document.getElementById("map"), mapProp);
+
+            var marker = new google.maps.Marker({
+                position: new google.maps.LatLng(lat, long),
+                map: map,
+                title: title
+            });
+
+
+        }
+
+
+        // Anomaly detection form submission
+        function submitForm() {
+            const noPelanggan = document.getElementById('no_pelanggan').value;
+            const deviceId = document.getElementById('device_id').value;
+
+
+            fetch('/anomaly_detection_user', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    no_pelanggan: noPelanggan,
+                    device_id: deviceId
+                })
+            })
+                .then(response => response.json())
+
+                .then(data => {
+                    console.log(data);
+
+                    document.getElementById('anomaly-message').textContent = data.message;
+
+                    updateMap(data.latitude, data.longitude, data.message);
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    document.getElementById('anomaly-message').textContent = 'Terjadi kesalahan saat memproses permintaan.';
+                });
+        };
+
+
+    </script>
+
+    <script
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC7NQKVoYsE1NgAzfBzloM5uocqfiKZ1WM&callback=initMap"></script>
+</body>
+
+</html>
