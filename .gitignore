@@ -1,3 +1,5 @@
-
 # Ignore all CSV files
-*.csv
+# *.csv
+
+# ignore 1 file large csv
+data/DF_TEST_V2.csv
